@@ -105,16 +105,12 @@ def oneOf_draft4(validator, oneOf, instance, schema):
                 if instance['statementType'] == validStatementType:
                     for err in errs:
                         yield err
-                    # FIXME
-                    first_valid = None
-                    break
+                    return
                 else:
                     validStatementTypes.append(validStatementType)
             else:
                 yield ValidationError('statementType is missing but required')
                 break
-        # Need to handle:
-        # * Meaningful mesage when 'statementType' is missing, or does not match any enums
         all_errors.extend(errs)
     else:
         if validStatementTypes:
