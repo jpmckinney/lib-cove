@@ -99,7 +99,6 @@ def oneOf_draft4(validator, oneOf, instance, schema):
         properties = subschema.get('properties', {})
         if'statementType' in properties:
             if 'statementType' in instance:
-                print(properties['statementType'])
                 # FIXME IndexError etc.
                 validStatementType = properties['statementType'].get('enum', [])[0]
                 if instance['statementType'] == validStatementType:
@@ -115,10 +114,11 @@ def oneOf_draft4(validator, oneOf, instance, schema):
     else:
         if validStatementTypes:
             yield ValidationError(
-                'statementType "{}" should be one of {}'.format(
-                    instance['statementType'],
-                    ', '.join(validStatementTypes)
-                )
+                "statementType should be one of '{}'".format(
+                    "', '".join(validStatementTypes)
+                ),
+                instance=instance['statementType'],
+                path=('statementType',),
             )
         else:
             yield ValidationError(
