@@ -108,17 +108,19 @@ def oneOf_draft4(validator, oneOf, instance, schema):
                 else:
                     validStatementTypes.append(validStatementType)
             else:
-                yield ValidationError('statementType is missing but required')
+                yield ValidationError(
+                    'statementType',
+                    validator='required',
+                )
                 break
         all_errors.extend(errs)
     else:
         if validStatementTypes:
             yield ValidationError(
-                "statementType should be one of '{}'".format(
-                    "', '".join(validStatementTypes)
-                ),
+                'Invalid code found in statementType',
                 instance=instance['statementType'],
                 path=('statementType',),
+                validator='enum',
             )
         else:
             yield ValidationError(
