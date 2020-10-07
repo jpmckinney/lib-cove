@@ -236,7 +236,6 @@ def test_schema_dict_fields_generator_schema_with_list_and_oneof():
     ]
 
 
-
 def test_get_additional_fields_info():
 
     simple_data = {

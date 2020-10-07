@@ -418,10 +418,16 @@ def common_checks_context(
 
     schema_fields = schema_obj.get_pkg_schema_fields()
 
-    fields_present, json_data_gen_paths = get_fields_present_and_generic_paths(json_data, {}, {})
+    fields_present, json_data_gen_paths = get_fields_present_and_generic_paths(
+        json_data, {}, {}
+    )
 
     additional_fields_all = get_additional_fields_info(
-        json_data, schema_fields, context, fields_regex=fields_regex, fields_present=fields_present
+        json_data,
+        schema_fields,
+        context,
+        fields_regex=fields_regex,
+        fields_present=fields_present,
     )
 
     additional_fields = sorted(
@@ -589,7 +595,9 @@ def get_additional_codelist_values(schema_obj, json_data):
     return additional_codelist_values
 
 
-def get_additional_fields_info(json_data, schema_fields, context, fields_regex=False, fields_present=None):
+def get_additional_fields_info(
+    json_data, schema_fields, context, fields_regex=False, fields_present=None
+):
     if not fields_present:
         fields_present, _ = get_fields_present_and_generic_paths(json_data, {}, {})
 
@@ -833,7 +841,9 @@ def get_schema_validation_errors(
     return dict(validation_errors)
 
 
-def get_fields_present_and_generic_paths(json_data, counter, generic_paths, prefix="", path=(), generic_key=()):
+def get_fields_present_and_generic_paths(
+    json_data, counter, generic_paths, prefix="", path=(), generic_key=()
+):
     """Transform json data into a dictionary with keys made of json paths.
 
     Key are json paths (as tuples). Values are dictionaries with keys including specific
@@ -894,7 +904,9 @@ def get_fields_present_and_generic_paths(json_data, counter, generic_paths, pref
             generic_paths[new_generic_key] = {new_path: value}
 
         if isinstance(value, (dict, list)):
-            get_fields_present_and_generic_paths(value, counter, generic_paths, new_key, new_path, new_generic_key)
+            get_fields_present_and_generic_paths(
+                value, counter, generic_paths, new_key, new_path, new_generic_key
+            )
         elif len(counter[new_key]["examples"]) < 3:
             counter[new_key]["examples"].append(value)
 
@@ -989,10 +1001,7 @@ def _generate_data_path(json_data, path=()):
 
 def get_fields_present(json_data):
     fields_present, _ = get_fields_present_and_generic_paths(json_data, {}, {})
-    return {
-        key: value["count"]
-        for key, value in fields_present.items()
-    }
+    return {key: value["count"] for key, value in fields_present.items()}
 
 
 class CustomRefResolver(RefResolver):
