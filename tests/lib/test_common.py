@@ -6,11 +6,10 @@ import pytest
 from libcove.lib.common import (
     SchemaJsonMixin,
     _get_schema_deprecated_paths,
-    fields_present_generator,
     get_additional_fields_info,
     get_fields_present,
     get_json_data_deprecated_fields,
-    get_json_data_generic_paths,
+    get_fields_present_and_generic_paths,
     get_orgids_prefixes,
     get_schema_validation_errors,
     schema_dict_fields_generator,
@@ -38,8 +37,8 @@ def test_get_json_data_deprecated_fields():
     schema_obj.pkg_schema_url = os.path.join(
         schema_obj.schema_host, schema_obj.release_pkg_schema_name
     )
-    json_data_paths = get_json_data_generic_paths(
-        json_data_w_deprecations, generic_paths={}
+    _, json_data_paths = get_fields_present_and_generic_paths(
+        json_data_w_deprecations, {}, {}
     )
     deprecated_data_fields = get_json_data_deprecated_fields(
         json_data_paths, schema_obj
@@ -235,110 +234,6 @@ def test_schema_dict_fields_generator_schema_with_list_and_oneof():
         "/source/url",
     ]
 
-
-def test_fields_present_generator_tenders_releases_2_releases():
-
-    with open(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "fixtures",
-            "common",
-            "tenders_releases_2_releases.json",
-        )
-    ) as fp:
-        json_schema = json.load(fp)
-
-    data = sorted(set(key for key, _ in fields_present_generator(json_schema)))
-
-    assert data == [
-        "/license",
-        "/publishedDate",
-        "/publisher",
-        "/publisher/name",
-        "/publisher/scheme",
-        "/publisher/uid",
-        "/publisher/uri",
-        "/releases",
-        "/releases/buyer",
-        "/releases/buyer/name",
-        "/releases/date",
-        "/releases/id",
-        "/releases/initiationType",
-        "/releases/language",
-        "/releases/ocid",
-        "/releases/tag",
-        "/releases/tender",
-        "/releases/tender/awardCriteriaDetails",
-        "/releases/tender/documents",
-        "/releases/tender/documents/id",
-        "/releases/tender/documents/url",
-        "/releases/tender/id",
-        "/releases/tender/items",
-        "/releases/tender/items/classification",
-        "/releases/tender/items/classification/description",
-        "/releases/tender/items/classification/scheme",
-        "/releases/tender/items/description",
-        "/releases/tender/items/id",
-        "/releases/tender/methodRationale",
-        "/releases/tender/procuringEntity",
-        "/releases/tender/procuringEntity/name",
-        "/releases/tender/procuringEntity/name_fr",
-        "/releases/tender/tenderPeriod",
-        "/releases/tender/tenderPeriod/endDate",
-        "/uri",
-    ]
-
-
-def test_fields_present_generator_data_root_is_list():
-
-    with open(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "fixtures",
-            "common",
-            "data_root_is_list.json",
-        )
-    ) as fp:
-        json_schema = json.load(fp)
-
-    data = sorted(set(key for key, _ in fields_present_generator(json_schema)))
-
-    assert data == [
-        "/addresses",
-        "/addresses/address",
-        "/addresses/country",
-        "/addresses/postCode",
-        "/addresses/type",
-        "/birthDate",
-        "/entityType",
-        "/foundingDate",
-        "/identifiers",
-        "/identifiers/id",
-        "/identifiers/scheme",
-        "/interestedParty",
-        "/interestedParty/describedByPersonStatement",
-        "/interests",
-        "/interests/beneficialOwnershipOrControl",
-        "/interests/interestLevel",
-        "/interests/share",
-        "/interests/share/exact",
-        "/interests/startDate",
-        "/interests/type",
-        "/name",
-        "/names",
-        "/names/familyName",
-        "/names/fullName",
-        "/names/givenName",
-        "/names/type",
-        "/nationalities",
-        "/nationalities/code",
-        "/personType",
-        "/statementDate",
-        "/statementID",
-        "/statementType",
-        "/subject",
-        "/subject/describedByEntityStatement",
-    ]
 
 
 def test_get_additional_fields_info():
