@@ -418,8 +418,10 @@ def common_checks_context(
 
     schema_fields = schema_obj.get_pkg_schema_fields()
 
+    fields_present, json_data_gen_paths = get_fields_present_and_generic_paths(json_data, {}, {})
+
     additional_fields_all = get_additional_fields_info(
-        json_data, schema_fields, context, fields_regex=fields_regex
+        json_data, schema_fields, context, fields_regex=fields_regex, fields_present=fields_present
     )
 
     additional_fields = sorted(
@@ -503,7 +505,6 @@ def common_checks_context(
         }
     )
 
-    json_data_gen_paths = get_json_data_generic_paths(json_data, generic_paths={})
     context["deprecated_fields"] = get_json_data_deprecated_fields(
         json_data_gen_paths, schema_obj
     )
@@ -588,8 +589,9 @@ def get_additional_codelist_values(schema_obj, json_data):
     return additional_codelist_values
 
 
-def get_additional_fields_info(json_data, schema_fields, context, fields_regex=False):
-    fields_present = get_fields_present_with_examples(json_data)
+def get_additional_fields_info(json_data, schema_fields, context, fields_regex=False, fields_present=None):
+    if not fields_present:
+        fields_present, _ = get_fields_present_and_generic_paths(json_data, {}, {})
 
     additional_fields = {}
     root_additional_fields = set()
@@ -831,7 +833,7 @@ def get_schema_validation_errors(
     return dict(validation_errors)
 
 
-def get_json_data_generic_paths(json_data, generic_paths, path=(), generic_key=()):
+def get_fields_present_and_generic_paths(json_data, counter, generic_paths, prefix="", path=(), generic_key=()):
     """Transform json data into a dictionary with keys made of json paths.
 
     Key are json paths (as tuples). Values are dictionaries with keys including specific
@@ -875,8 +877,16 @@ def get_json_data_generic_paths(json_data, generic_paths, path=(), generic_key=(
 
     for key, value in iterable:
         new_path = path + (key,)
+
         if is_dict:
+            new_key = prefix + "/" + key
+            if new_key not in counter:
+                counter[new_key] = {"count": 1, "examples": []}
+            else:
+                counter[new_key]["count"] += 1
             new_generic_key = generic_key + (key,)
+        else:
+            new_key = prefix
 
         if new_generic_key in generic_paths:
             generic_paths[new_generic_key][new_path] = value
@@ -884,9 +894,11 @@ def get_json_data_generic_paths(json_data, generic_paths, path=(), generic_key=(
             generic_paths[new_generic_key] = {new_path: value}
 
         if isinstance(value, (dict, list)):
-            get_json_data_generic_paths(value, generic_paths, new_path, new_generic_key)
+            get_fields_present_and_generic_paths(value, counter, generic_paths, new_key, new_path, new_generic_key)
+        elif len(counter[new_key]["examples"]) < 3:
+            counter[new_key]["examples"].append(value)
 
-    return generic_paths
+    return counter, generic_paths
 
 
 def get_json_data_deprecated_fields(json_data_paths, schema_obj):
@@ -975,24 +987,11 @@ def _generate_data_path(json_data, path=()):
             yield path + (key,), value
 
 
-def get_fields_present_with_examples(*args, **kwargs):
-    counter = {}
-    for key, value in fields_present_generator(*args, **kwargs):
-        if key not in counter:
-            counter[key] = {"count": 1, "examples": []}
-        else:
-            counter[key]["count"] += 1
-        if len(counter[key]["examples"]) < 3:
-            if not isinstance(value, (list, dict)):
-                counter[key]["examples"].append(value)
-
-    return counter
-
-
-def get_fields_present(*args, **kwargs):
+def get_fields_present(json_data):
+    fields_present, _ = get_fields_present_and_generic_paths(json_data, {}, {})
     return {
         key: value["count"]
-        for key, value in get_fields_present_with_examples(*args, **kwargs).items()
+        for key, value in fields_present.items()
     }
 
 
@@ -1149,19 +1148,6 @@ def _get_schema_non_required_ids(
             )
 
     return id_paths
-
-
-def fields_present_generator(json_data, prefix=""):
-    if isinstance(json_data, dict):
-        for key, value in json_data.items():
-            new_key = prefix + "/" + key
-            yield new_key, value
-            if isinstance(value, (dict, list)):
-                yield from fields_present_generator(value, new_key)
-    elif isinstance(json_data, list):
-        for item in json_data:
-            if isinstance(item, dict):
-                yield from fields_present_generator(item, prefix)
 
 
 def add_is_codelist(obj):
