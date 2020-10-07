@@ -5,6 +5,7 @@ import pytest
 
 from libcove.lib.common import (
     SchemaJsonMixin,
+    _ensure_type_lists,
     _get_schema_deprecated_paths,
     get_additional_fields_info,
     get_fields_present,
@@ -288,7 +289,7 @@ class DummyReleaseSchemaObj:
 
     def get_pkg_schema_obj(self):
         with open(os.path.join(self.schema_host, "release-package-schema.json")) as fp:
-            schema_json = json.load(fp)
+            schema_json = _ensure_type_lists(json.load(fp))
         return schema_json
 
 
@@ -299,7 +300,7 @@ class DummyRecordSchemaObj:
 
     def get_pkg_schema_obj(self):
         with open(os.path.join(self.schema_host, "record-package-schema.json")) as fp:
-            schema_json = json.load(fp)
+            schema_json = _ensure_type_lists(json.load(fp))
         return schema_json
 
 
